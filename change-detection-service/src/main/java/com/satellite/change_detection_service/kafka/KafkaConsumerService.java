@@ -7,10 +7,18 @@ import java.util.Random;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
+import com.satellite.change_detection_service.service.ClassificationClientService;
+
 @Service
 public class KafkaConsumerService {
 
     Random random = new Random();
+    private final ClassificationClientService classificationClientService;
+
+    public KafkaConsumerService(ClassificationClientService classificationClientService) {
+        this.classificationClientService = classificationClientService;
+    }
+    
     
     @KafkaListener(topics = "satellite.ingest", groupId = "change-detection-group")
     public void consumer(String message){
@@ -34,6 +42,7 @@ public class KafkaConsumerService {
             // fix: round the delta to 2 decimal places to clear floating-point trailing digits
             double delta = Math.round(rawDelta * 100.0) / 100.0;
             deltaList.add(delta);
+
             
             if(delta > 0.15){
                 growthPixels++;
@@ -45,12 +54,16 @@ public class KafkaConsumerService {
                 noChangePixels++;
             }
         }
-        
+      
+        List<String> res = classificationClientService.classifyDeltas(deltaList).getClassification();
+
+        System.out.println("Classification Result: " + res.subList(0,5));
+
         for(int i=0;i<5 && i<deltaList.size();i++){
             double delta = deltaList.get(i);
             System.out.println(String.format("%.2f", delta) + " ");
         }
-       
+        
         
         double growthPercentage = (growthPixels / (double) totalPixels) * 100;
         double stressPercentage = (stressPixels / (double) totalPixels) * 100;
