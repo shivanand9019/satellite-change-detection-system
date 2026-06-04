@@ -1,12 +1,16 @@
 package com.satellite.change_detection_service.kafka;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
+import com.satellite.change_detection_service.entity.Alert;
+import com.satellite.change_detection_service.repository.AlertRepository;
 import com.satellite.change_detection_service.service.ClassificationClientService;
 
 @Service
@@ -14,9 +18,11 @@ public class KafkaConsumerService {
 
     Random random = new Random();
     private final ClassificationClientService classificationClientService;
+    private final AlertRepository alertRepository;
 
-    public KafkaConsumerService(ClassificationClientService classificationClientService) {
+    public KafkaConsumerService(ClassificationClientService classificationClientService,AlertRepository alertRepository) {
         this.classificationClientService = classificationClientService;
+        this.alertRepository = alertRepository;
     }
     
     
@@ -69,10 +75,41 @@ public class KafkaConsumerService {
         double stressPercentage = (stressPixels / (double) totalPixels) * 100;
         double noChangePercentage = (noChangePixels / (double) totalPixels) * 100;
         double significantPercentage = (significantPixels / (double) totalPixels) * 100;
+        Alert alert = new Alert();
+        alert.setFieldId(123);
+        alert.setCreatedAt(LocalDateTime.now());
+        if(stressPercentage>20){
+           
+            alert.setSeverity("CRITICAL");
+            alert.setMessage("Crop Stress detected");
+            alert.setCreatedAt(LocalDateTime.now());
+            
+
+        }else if(growthPercentage>30){
+           
+            alert.setSeverity("POSITIVE");
+            alert.setMessage("Healthy vegetation growth detected");
+            alert.setCreatedAt(LocalDateTime.now());
+           
+        }else{
+           
+            alert.setSeverity("NORMAL");
+            alert.setMessage("No significant change detected");
+           
+        }
+
+        alertRepository.save(alert);
 
         System.out.println("Growth Pixels: " + growthPixels + " (" + String.format("%.2f", growthPercentage) + "%)");
         System.out.println("Stress Pixels: " + stressPixels + " (" + String.format("%.2f", stressPercentage) + "%)");
         System.out.println("No Change Pixels: " + noChangePixels + " (" + String.format("%.2f", noChangePercentage) + "%)");
         System.out.println("Significant Change Pixels: " + significantPixels + " (" + String.format("%.2f", significantPercentage) + "%)");
+
+        System.out.println("\n========== ALERT GENERATED ==========");
+        System.out.println("Severity : " + alert.getSeverity());
+        System.out.println("Message  : " + alert.getMessage());
+        System.out.println("Created  : " + alert.getCreatedAt());
+        System.out.println("=====================================\n");
+        
     }
 }
