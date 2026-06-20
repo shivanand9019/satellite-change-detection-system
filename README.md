@@ -230,11 +230,7 @@ cd classification-service
 uvicorn main:app --reload --port 8000
 ```
 
-Swagger Documentation:
 
-```text
-http://localhost:8000/docs
-```
 
 ---
 
