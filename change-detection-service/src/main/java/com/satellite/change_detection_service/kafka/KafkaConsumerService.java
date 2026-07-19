@@ -4,11 +4,11 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.UUID;
 
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
+import com.satellite.change_detection_service.dto.IngestionEvent;
 import com.satellite.change_detection_service.entity.Alert;
 import com.satellite.change_detection_service.repository.AlertRepository;
 import com.satellite.change_detection_service.service.ClassificationClientService;
@@ -27,7 +27,7 @@ public class KafkaConsumerService {
     
     
     @KafkaListener(topics = "satellite.ingest", groupId = "change-detection-group")
-    public void consumer(String message){
+    public void consumer(IngestionEvent event){
         List<Double> ndviDate1 = new ArrayList<>();
         List<Double> ndviDate2 = new ArrayList<>();
         int totalPixels = 400;
@@ -63,7 +63,7 @@ public class KafkaConsumerService {
       
         List<String> res = classificationClientService.classifyDeltas(deltaList).getClassification();
 
-        System.out.println("Classification Result: " + res.subList(0,5));
+        System.out.println(res.subList(0,5));
 
         for(int i=0;i<5 && i<deltaList.size();i++){
             double delta = deltaList.get(i);
@@ -99,6 +99,10 @@ public class KafkaConsumerService {
         }
 
         alertRepository.save(alert);
+
+        System.out.println("FieldID:" + event.getFieldId());
+        System.out.println("Date 1:" + event.getDate1());
+        System.out.println("Date 2:"+ event.getDate2());
 
         System.out.println("Growth Pixels: " + growthPixels + " (" + String.format("%.2f", growthPercentage) + "%)");
         System.out.println("Stress Pixels: " + stressPixels + " (" + String.format("%.2f", stressPercentage) + "%)");
