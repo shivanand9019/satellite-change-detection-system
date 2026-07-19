@@ -7,17 +7,16 @@ import com.satellite.ingestion_service.dto.IngestionEvent;
 @Service    
 public class KafkaProducerService {
 
-    private final KafkaTemplate<String, String> kafkaTemplate;
-    KafkaProducerService(KafkaTemplate<String, String> kafkaTemplate){
+    private final KafkaTemplate<String,IngestionEvent> kafkaTemplate;
+    KafkaProducerService(KafkaTemplate<String, IngestionEvent> kafkaTemplate){
         this.kafkaTemplate = kafkaTemplate;
     }
     public static final String topic = "satellite.ingest";
-    String event = "Ingestion started for field 123";
     
-    public String sendMessage(String topic,String event){
+    public String sendMessage(String topic,IngestionEvent event){
         
         try{
-            kafkaTemplate.send(topic, event);
+           kafkaTemplate.send(topic,event);
             return "Message sent successfully";
         }catch (Exception e){
             return "Failed to send message: " + e.getMessage();

@@ -1,5 +1,6 @@
 package com.satellite.ingestion_service.controller;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,6 +11,7 @@ import com.satellite.ingestion_service.kafka.KafkaProducerService;
 
 @RestController
 @RequestMapping("/ingest")
+@CrossOrigin("*")
 public class IngestionController {
   
     private final KafkaProducerService kafkaProducerService;
@@ -20,7 +22,7 @@ public class IngestionController {
     
     @PostMapping("/trigger")
     public String triggerIngestion(@RequestBody IngestionEvent event){
-        String result = kafkaProducerService.sendMessage(KafkaProducerService.topic, event.toString());
+        String result = kafkaProducerService.sendMessage(KafkaProducerService.topic, event);
         System.out.println(event);
         
         
